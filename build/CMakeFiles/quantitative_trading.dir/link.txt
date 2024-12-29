@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/quantitative_trading.dir/src/main.cpp.o CMakeFiles/quantitative_trading.dir/src/websocket_client.cpp.o CMakeFiles/quantitative_trading.dir/src/order_execution.cpp.o -o quantitative_trading  /usr/lib/x86_64-linux-gnu/libcpprest.so /usr/lib/x86_64-linux-gnu/libboost_system.so.1.74.0 /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/x86_64-linux-gnu/libcrypto.so 
