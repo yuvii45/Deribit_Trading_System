@@ -4,6 +4,7 @@ project(quantitative_trading)
 
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(OpenSSL 1.0.0 REQUIRED)
+find_package(spdlog REQUIRED)
 
 find_library(CPPREST_LIB cpprest)
 
@@ -19,4 +20,5 @@ target_link_libraries(quantitative_trading
     ${CPPREST_LIB}
     Boost::system
     OpenSSL::SSL
+    spdlog::spdlog
 )

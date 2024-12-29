@@ -15,13 +15,12 @@ public:
     web::json::value send_and_receive_request(const std::string &request);
 
     std::string create_signed_request(const std::string &params, const std::string &request_type);
-    web::json::value get_balance(const std::string &currency);
     void place_order(const std::string &instrument_name, double amount, double price, const std::string &order_type, bool market = false);
     void cancel_order(const std::string &order_id);
     void view_open_orders();
     void view_position();
     void modify_order(const std::string &order_id, int amount, double price);
-    void subscribe(const std::string &instrument_name, const std::string &interval);
+    void subscribe(const std::string &instrument_name);
     void get_order_book(const std::string &instrument_name, int depth = 10);
 
 private:
