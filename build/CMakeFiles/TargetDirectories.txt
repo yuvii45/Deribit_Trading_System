@@ -1,3 +1,0 @@
-/home/yuvraj/quantitative_trading/build/CMakeFiles/quantitative_trading.dir
-/home/yuvraj/quantitative_trading/build/CMakeFiles/edit_cache.dir
-/home/yuvraj/quantitative_trading/build/CMakeFiles/rebuild_cache.dir
