@@ -34,7 +34,7 @@ void WebSocketClient::send_message(const web::json::value &message)
     outgoing_msg.set_utf8_message(message.serialize());
     client_.send(outgoing_msg).wait();
 
-    std::cout << "Message sent. " << std::endl;
+    // std::cout << "Message sent. " << std::endl;
 }
 
 void WebSocketClient::receive_message(std::function<void(const web::json::value &)> callback)
@@ -46,7 +46,7 @@ void WebSocketClient::receive_message(std::function<void(const web::json::value 
         callback(json_message); })
         .wait();
 
-    std::cout << "Message Received. " << std::endl;
+    // std::cout << "Message Received. " << std::endl;
 }
 
 void WebSocketClient::close()
