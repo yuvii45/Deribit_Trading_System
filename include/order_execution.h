@@ -10,7 +10,7 @@
 class OrderExecution
 {
 public:
-    OrderExecution(const std::string &api_key, const std::string &api_secret, const std::string &acess_token, WebSocketClient &client);
+    OrderExecution(const std::string &api_key, const std::string &api_secret, const std::string &acess_token, WebSocketClient &deribit_client, WebSocketClient &local_client);
 
     web::json::value send_and_receive_request(const std::string &request);
 
@@ -24,7 +24,8 @@ public:
     void get_order_book(const std::string &instrument_name, int depth = 10);
 
 private:
-    WebSocketClient &client_;
+    WebSocketClient &deribit_client_;
+    WebSocketClient &local_client_;
     std::string api_key_;
     std::string api_secret_;
     std::string access_token_;

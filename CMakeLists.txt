@@ -9,14 +9,27 @@ find_package(spdlog REQUIRED)
 find_library(CPPREST_LIB cpprest)
 
 include_directories(include)
+include_directories(include/websocketpp)
 
-add_executable(quantitative_trading 
+add_executable(client 
     src/main.cpp
     src/websocket_client.cpp
     src/order_execution.cpp
 )
 
-target_link_libraries(quantitative_trading
+add_executable(server 
+    src/websocket_server.cpp
+    src/websocket_client.cpp
+)
+
+target_link_libraries(client
+    ${CPPREST_LIB}
+    Boost::system
+    OpenSSL::SSL
+    spdlog::spdlog
+)
+
+target_link_libraries(server
     ${CPPREST_LIB}
     Boost::system
     OpenSSL::SSL

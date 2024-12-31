@@ -3,8 +3,8 @@
 #include <iomanip>
 #include <spdlog/spdlog.h>
 
-OrderExecution::OrderExecution(const std::string &api_key, const std::string &api_secret, const std::string &access_token, WebSocketClient &client)
-    : api_key_(api_key), api_secret_(api_secret), client_(client), access_token_(access_token) {}
+OrderExecution::OrderExecution(const std::string &api_key, const std::string &api_secret, const std::string &access_token, WebSocketClient &deribit_client, WebSocketClient &local_client)
+    : api_key_(api_key), api_secret_(api_secret), deribit_client_(deribit_client), local_client_(local_client), access_token_(access_token) {}
 
 web::json::value OrderExecution::send_and_receive_request(const std::string &request)
 {
@@ -12,9 +12,9 @@ web::json::value OrderExecution::send_and_receive_request(const std::string &req
     {
         web::json::value message = web::json::value::parse(request);
         web::json::value response;
-        client_.send_message(message);
-        client_.receive_message([&response](const web::json::value &msg)
-                                { response = msg; });
+        deribit_client_.send_message(message);
+        deribit_client_.receive_message([&response](const web::json::value &msg)
+                                        { response = msg; });
 
         // Step 5: Check the response
         if (response.has_field("error"))
@@ -167,11 +167,11 @@ void OrderExecution::get_order_book(const std::string &instrument_name, int dept
 
     try
     {
-        client_.send_message(message);
+        deribit_client_.send_message(message);
 
         web::json::value response;
-        client_.receive_message([&response](const web::json::value &msg)
-                                { response = msg; });
+        deribit_client_.receive_message([&response](const web::json::value &msg)
+                                        { response = msg; });
 
         spdlog::info("Got the order book: {}", response.serialize());
     }
@@ -242,39 +242,30 @@ void OrderExecution::modify_order(const std::string &order_id, int amount, doubl
 
 void OrderExecution::subscribe(const std::string &instrument_name)
 {
-    const std::string request_type = "public/subscribe";
-    const std::string group = "none";
-    int depth = 10;
+    spdlog::info("Subscribing to instrument: {}", instrument_name);
 
-    std::string channel_name = "book." + instrument_name + "." + group + "." +
-                               std::to_string(depth) + "." + "100ms";
-
-    spdlog::info("Channel Name: {}", channel_name);
-
-    web::json::value channels = web::json::value::array();
-    channels[0] = web::json::value::string(U(channel_name));
-
-    web::json::value message = web::json::value::object();
-    message[U("jsonrpc")] = web::json::value::string(U("2.0"));
-    message[U("id")] = web::json::value::number(4);
-    message[U("method")] = web::json::value::string(U(request_type));
-    message[U("params")] = web::json::value::object({
-        {U("channels"), channels},
-    });
+    // Build the subscription request for localhost
+    web::json::value subscription_request = web::json::value::object();
+    subscription_request[U("action")] = web::json::value::string(U("subscribe"));
+    subscription_request[U("instrument")] = web::json::value::string(U(instrument_name));
 
     try
     {
-        client_.send_message(message);
+        // Send the subscription request to the localhost server
+        local_client_.send_message(subscription_request);
 
+        spdlog::info("Subscription request sent to localhost server.");
+
+        // Receive and log notifications
         while (true)
         {
             try
             {
                 web::json::value notification;
-                client_.receive_message([&notification](const web::json::value &msg)
-                                        { notification = msg; });
+                local_client_.receive_message([&notification](const web::json::value &msg)
+                                              { notification = msg; });
 
-                spdlog::info("Notification received: {}", notification.serialize());
+                spdlog::info("Notification received at orderexec: {}", notification.serialize());
             }
             catch (const std::exception &e)
             {
@@ -285,7 +276,7 @@ void OrderExecution::subscribe(const std::string &instrument_name)
     }
     catch (const std::exception &e)
     {
-        spdlog::error("Error subscribing to channel: {}", e.what());
+        spdlog::error("Error subscribing to instrument: {}", e.what());
         throw;
     }
 }
