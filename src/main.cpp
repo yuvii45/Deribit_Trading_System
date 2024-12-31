@@ -6,6 +6,9 @@
 const std::string API_KEY = "wOAbyf0v";
 const std::string API_SECRET = "33VzZ9W4mi4Yx8Hhqy_4AjJfYrlhFfAFtELvHEXY63Q";
 
+const std::string DERIBIT_SERVER_URL = "wss://test.deribit.com/ws/api/v2";
+const std::string LOCAL_SERVER_URL = "ws://127.0.0.1:9002";
+
 std::string authenticate(const std::string &api_key, const std::string &api_secret, WebSocketClient &client)
 {
     try
@@ -19,21 +22,18 @@ std::string authenticate(const std::string &api_key, const std::string &api_secr
                                                               {U("client_id"), web::json::value::string(U(api_key))},
                                                               {U("client_secret"), web::json::value::string(U(api_secret))}});
 
-        // Send the authentication message via WebSocket
         client.send_message(auth_message);
 
         web::json::value response;
         client.receive_message([&response](const web::json::value &msg)
                                { response = msg; });
 
-        // Check for errors in the response
         if (response.has_field("error"))
         {
             spdlog::error("Authentication failed. Response error: {}", response.serialize());
             throw std::runtime_error("Authentication failed. Check response for details.");
         }
 
-        // Store the token for future use
         std::string access_token_ = response[U("result")][U("access_token")].as_string();
 
         return access_token_;
@@ -49,18 +49,19 @@ int main()
 {
     try
     {
-        std::string websocket_url = "wss://test.deribit.com/ws/api/v2";
-        WebSocketClient websocket_client(websocket_url);
-        websocket_client.connect();
+        WebSocketClient deribit_client(DERIBIT_SERVER_URL);
+        deribit_client.connect();
+
+        WebSocketClient local_client(LOCAL_SERVER_URL);
+        local_client.connect();
 
         // Authenticate and obtain access token
-        std::string access_token = authenticate(API_KEY, API_SECRET, websocket_client);
+        std::string access_token = authenticate(API_KEY, API_SECRET, deribit_client);
         spdlog::info("Authentication Successful.");
 
         // Initialize OrderExecution object
-        OrderExecution order_exec(API_KEY, API_SECRET, access_token, websocket_client);
+        OrderExecution order_exec(API_KEY, API_SECRET, access_token, deribit_client, local_client);
 
-        // Main loop for user interaction
         int choice;
         do
         {
@@ -166,7 +167,8 @@ int main()
             }
         } while (choice != 7);
 
-        websocket_client.close();
+        deribit_client.close();
+        local_client.close();
     }
     catch (const std::exception &e)
     {
